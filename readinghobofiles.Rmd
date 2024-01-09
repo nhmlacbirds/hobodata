@@ -1,0 +1,53 @@
+---
+title: "Plotting HOBO outputs"
+output: html_document
+date: "2024-01-08"
+---
+
+```{r}
+library(tidyverse)
+library(data.table)
+library(lubridate)
+```
+
+Load data
+```{r}
+# Example data
+data <- fread("10596690_Birds_Mammals_Range.csv", skip=1, header=T)
+colnames(data)  <- c("n","timestamp", "temp", "rh")
+
+# change date/time to POSIXct class
+data$time <- as.POSIXct(data$timestamp, format = "%m/%d/%y  %I:%M:%S %p")
+
+# get just a date class for future filtering
+data$date <- as.Date(data$time)
+
+
+min(data$date) 
+max(data$date)
+```
+
+
+Plot
+1) Temperature
+```{r}
+# Temperature
+ggplot(data, aes(x=time, y=temp)) +
+  geom_line()
+```
+
+2) Relative humidity
+```{r}
+ggplot(data, aes(x=time, y=rh)) +
+  geom_line()
+```
+
+Filtering plots 
+
+Filter out by date range
+```{r}
+data %>% 
+  filter(date > "2023-10-06") %>% 
+  ggplot(aes(x=time, y=rh)) +
+  geom_line()
+```
