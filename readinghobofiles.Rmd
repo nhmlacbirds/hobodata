@@ -13,6 +13,7 @@ library(lubridate)
 Load data
 ```{r}
 # Example data
+# from .hobo file that was exported to .csv in the HOBOware program
 data <- fread("10596690_Birds_Mammals_Range.csv", skip=1, header=T)
 colnames(data)  <- c("n","timestamp", "temp", "rh")
 
@@ -30,10 +31,20 @@ max(data$date)
 
 Plot
 1) Temperature
+
+* Add temp min 65 max 75 lines (hline)
+* add function that highlights time periods where the value exceeds that threshold (rect)
+
 ```{r}
 # Temperature
 ggplot(data, aes(x=time, y=temp)) +
-  geom_line()
+  geom_line() +
+  theme_classic() 
+
+# adding highlighted areas
+rect <- data.frame(ymin=65, ymax=75, xmin=-Inf, xmax=Inf)
+#geom_rect(data = rect, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), color = "green", alpha = 0.5, inherit.aes = FALSE)
+
 ```
 
 2) Relative humidity
