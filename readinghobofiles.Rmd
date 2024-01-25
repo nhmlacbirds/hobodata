@@ -21,7 +21,7 @@ colnames(data)  <- c("n","timestamp", "temp", "rh")
 data$time <- as.POSIXct(data$timestamp, format = "%m/%d/%y  %I:%M:%S %p")
 
 # get just a date class for future filtering
-data$date <- as.Date(data$time)
+data$date <- as.Date(data$time, format = "%m/%d/%Y")
 
 
 min(data$date) 
@@ -32,20 +32,34 @@ max(data$date)
 Plot
 1) Temperature
 
-* Add temp min 65 max 75 lines (hline)
+* Add temp min 65 max 75 lines (hline) - done
 * add function that highlights time periods where the value exceeds that threshold (rect)
 
 ```{r}
 # Temperature
-ggplot(data, aes(x=time, y=temp)) +
+ggplot(data, aes(x=date, y=temp)) +
   geom_line() +
-  theme_classic() 
-
-# adding highlighted areas
-rect <- data.frame(ymin=65, ymax=75, xmin=-Inf, xmax=Inf)
-#geom_rect(data = rect, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), color = "green", alpha = 0.5, inherit.aes = FALSE)
-
+  geom_smooth(col="red") +
+  geom_hline(aes(yintercept = 62), color="red", linetype="dashed") +
+  geom_hline(aes(yintercept = 70), color="red", linetype="dashed") +
+  labs(x="Date", y="Temperature") +
+  scale_x_date(date_breaks = "1 month", date_minor_breaks = "1 week", date_labels = "%B")
 ```
+### Zoom in
+
+```{r}
+# Temperature
+ggplot(data, aes(x=date, y=temp)) +
+  geom_line() +
+  geom_smooth(col="red") +
+  geom_hline(aes(yintercept = 62), color="red", linetype="dashed") +
+  geom_hline(aes(yintercept = 70), color="red", linetype="dashed") +
+  labs(x="Date", y="Temperature") +
+  scale_x_date(date_breaks = "1 month", date_minor_breaks = "1 week", date_labels = "%B",
+               limits = as.Date(c("2023-11-01", "2023-12-31")))
+```
+
+
 
 2) Relative humidity
 ```{r}

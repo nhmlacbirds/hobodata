@@ -5,7 +5,7 @@ library(tidyverse)
 ui <- fluidPage(
 
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
+    titlePanel("HOBO readouts"),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
