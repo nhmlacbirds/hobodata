@@ -2,6 +2,8 @@
 title: "Plotting HOBO outputs"
 output: html_document
 date: "2024-01-08"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r}
@@ -15,7 +17,11 @@ Load data
 # Example data
 # from .hobo file that was exported to .csv in the HOBOware program
 data <- fread("10596690_Birds_Mammals_Range.csv", skip=1, header=T)
-colnames(data)  <- c("n","timestamp", "temp", "rh")
+data <- fread("20240109_Birds_Mammals_fluid_rm.csv", skip=1, header=T)
+data <- fread("Temp_Birds_Mammals_fluid_rm_20240207.csv", skip=1, header=T)
+
+
+colnames(data)  <- c("n","timestamp", "temp", "rh", "dewpt", "host", "end")
 
 # change date/time to POSIXct class
 data$time <- as.POSIXct(data$timestamp, format = "%m/%d/%y  %I:%M:%S %p")
@@ -45,8 +51,8 @@ ggplot(data, aes(x=date, y=temp)) +
   labs(x="Date", y="Temperature") +
   scale_x_date(date_breaks = "1 month", date_minor_breaks = "1 week", date_labels = "%B")
 ```
-### Zoom in
 
+### Zoom in
 ```{r}
 # Temperature
 ggplot(data, aes(x=date, y=temp)) +
@@ -56,7 +62,7 @@ ggplot(data, aes(x=date, y=temp)) +
   geom_hline(aes(yintercept = 70), color="red", linetype="dashed") +
   labs(x="Date", y="Temperature") +
   scale_x_date(date_breaks = "1 month", date_minor_breaks = "1 week", date_labels = "%B",
-               limits = as.Date(c("2023-11-01", "2023-12-31")))
+               limits = as.Date(c("2023-12-14", "2024-02-08")))
 ```
 
 
@@ -64,9 +70,66 @@ ggplot(data, aes(x=date, y=temp)) +
 2) Relative humidity
 ```{r}
 ggplot(data, aes(x=time, y=rh)) +
-  geom_line()
+  geom_line() +
+  geom_smooth(col="blue") +
+  geom_hline(aes(yintercept = 30), color="blue", linetype="dashed") +
+  geom_hline(aes(yintercept = 50), color="blue", linetype="dashed") +
+  labs(x="Date", y="Temperature")
 ```
 
+
+3) Plot all 3 (Temp, RH, Dew pt)
+
+ggplot(datalu, aes(x = Year)) +
+    geom_line(aes(y = CA  , colour = "CA"), size = 1) +
+    geom_line(aes(y = PR  , colour = "PR"), size = 1) +
+    geom_line(aes(y = `NA`, colour = "NA"), size = 1) +
+    scale_color_manual(values = scales::hue_pal()(3)) +
+    theme_light() +
+    labs(y = "Value",
+         colour = "Series")
+
+```{r}
+ggplot(data, aes(x=time)) +
+  geom_line(aes(y=temp), col="red") +
+  geom_line(aes(y=rh), col="blue") +
+  geom_line(aes(y=dewpt), col="black") +
+  labs(x="Date") 
+
+# change data format
+datal <- data %>% 
+  mutate(notice = ifelse(dewpt>rh, "warning", "clear")) %>% 
+  pivot_longer(c(temp, rh, dewpt), names_to = 'measure', values_to = 'value') 
+
+datal <- data %>% 
+  mutate(notice = ifelse(dewpt>rh, 1, 0)) %>% 
+  pivot_longer(c(temp, rh, dewpt), names_to = 'measure', values_to = 'value') 
+
+
+# get start/end point of consecutive values for getting the shaded area
+shade <- setDT(datal)[,id := rleid(notice)][
+  ,.SD[.N > 1 & notice == 1],id][
+  ,.(start=date[1],end=date[.N], run=.N),id]
+
+# transform to POSIXct object for plotting
+shade$startd <- as.POSIXct(shade$start)
+shade$endd <- as.POSIXct(shade$end)
+
+# plot all lines
+# add shaded area where dew pt > RH 
+ggplot() +
+  geom_line(data=datal, aes(x=time, y=value, col=measure, group=measure), size=1) +
+  theme_classic() +
+  scale_color_manual(name="Measure", limits=c("temp", "rh", "dewpt"), labels = c("Temperature", "RH", "Dew point"), values = c("red", "blue", "black")) + 
+  labs(x="Date", y="Value") +
+   geom_rect(data=shade, 
+            mapping=aes(xmin=startd, xmax=endd, ymin=0, ymax=100), color='grey', alpha=0.2)
+```
+
+
+
+
+##
 Filtering plots 
 
 Filter out by date range
