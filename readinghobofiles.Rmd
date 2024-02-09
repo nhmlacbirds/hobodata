@@ -123,7 +123,7 @@ ggplot() +
   scale_color_manual(name="Measure", limits=c("temp", "rh", "dewpt"), labels = c("Temperature", "RH", "Dew point"), values = c("red", "blue", "black")) + 
   labs(x="Date", y="Value") +
    geom_rect(data=shade, 
-            mapping=aes(xmin=startd, xmax=endd, ymin=0, ymax=100), color='grey', alpha=0.2)
+            mapping=aes(xmin=startd, xmax=endd, ymin=0, ymax=100), fill='red', alpha=0.2)
 ```
 
 
