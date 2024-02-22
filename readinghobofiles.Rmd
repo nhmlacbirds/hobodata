@@ -6,6 +6,8 @@ editor_options:
   chunk_output_type: console
 ---
 
+runExample("09_upload")  
+
 ```{r}
 library(tidyverse)
 library(data.table)
